@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NRS Practical - GEN 2nd year</title>
+<!-- Firebase App & Database SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+:root {
+    --border-color: rgba(34, 197, 94, 0.35);
+    --text-main: #e9fff1;
+    --accent: #4ade80;
+    --accent-glow: rgba(34, 197, 94, 0.55);
+    --neon-gold: #4ade80;
+    --success-bg: rgba(34, 197, 94, 0.14);
+    --success-border: #22c55e;
+    --success-text: #4ade80;
+    --error-bg: rgba(255, 59, 92, 0.14);
+    --error-border: #ff3b5c;
+    --error-text: #ff6b85;
+    --streak-bg: rgba(34, 197, 94, 0.12);
+    --streak-border: rgba(34, 197, 94, 0.5);
+    --streak-text: #bbf7d0;
+    --font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
+}
+@keyframes shake { 0%{transform:translate(0,0)} 20%{transform:translate(-6px,0)} 40%{transform:translate(6px,0)} 60%{transform:translate(-4px,0)} 80%{transform:translate(4px,0)} 100%{transform:translate(0,0)} }
+@keyframes happyGlow { 0%{box-shadow:0 0 0 rgba(34,197,94,0);border-color:var(--border-color)} 50%{box-shadow:0 0 30px rgba(34,197,94,.7);border-color:#86efac} 100%{box-shadow:0 0 10px rgba(34,197,94,.2);border-color:var(--border-color)} }
+@keyframes floatBubble1 { 0%{transform:translate(0,0) scale(1)} 33%{transform:translate(50px,-80px) scale(1.2)} 66%{transform:translate(-30px,40px) scale(.9)} 100%{transform:translate(0,0) scale(1)} }
+@keyframes floatBubble2 { 0%{transform:translate(0,0) scale(1)} 33%{transform:translate(-70px,60px) scale(1.1)} 66%{transform:translate(40px,-50px) scale(.8)} 100%{transform:translate(0,0) scale(1)} }
+@keyframes fadeIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
+@keyframes optSlide { from{opacity:0;transform:translateX(-14px)} to{opacity:1;transform:translateX(0)} }
+
+.vip-tag { display:inline-block; vertical-align:middle; margin-inline-end:8px; padding:2px 10px; border-radius:999px; background:linear-gradient(135deg,#fde68a 0%,#f59e0b 100%); color:#3b2300; font-size:.72rem; font-weight:800; letter-spacing:.8px; box-shadow:0 0 10px rgba(251,191,36,.55); }
+
+body { background-color:#000; color:var(--text-main); font-family:var(--font-family); margin:0; padding:10px; display:flex; justify-content:center; align-items:center; min-height:100vh; direction:ltr; overflow-x:hidden; position:relative; }
+.bg-animation-layer { position:fixed; top:0; left:0; width:100vw; height:100vh; overflow:hidden; z-index:-1; pointer-events:none; }
+.glow-orb-1 { position:absolute; top:10%; left:20%; width:300px; height:300px; background:rgba(34,197,94,.14); filter:blur(80px); border-radius:50%; animation:floatBubble1 12s ease-in-out infinite; }
+.glow-orb-2 { position:absolute; bottom:10%; right:20%; width:350px; height:350px; background:rgba(34,197,94,.07); filter:blur(90px); border-radius:50%; animation:floatBubble2 15s ease-in-out infinite; }
+
+.quiz-container { background:rgba(8,8,10,.88); border:1px solid var(--border-color); border-radius:20px; width:100%; max-width:700px; padding:20px; box-sizing:border-box; position:relative; backdrop-filter:blur(8px); box-shadow:0 0 30px rgba(34,197,94,.08); }
+.app-screen { display:none; text-align:center; animation:fadeIn .4s ease; flex-direction:column; align-items:center; justify-content:center; }
+.app-screen.active { display:flex; }
+.author-top-left { position:absolute; top:6px; left:10px; font-size:.75rem; color:#ff6b85; font-weight:700; letter-spacing:.5px; background:rgba(255,59,92,.1); padding:3px 8px; border-radius:8px; border:1px solid rgba(255,59,92,.35); }
+.telegram-top-right { position:absolute; top:6px; right:10px; }
+.welcome-image { width:120px; height:120px; border-radius:50%; object-fit:cover; margin-top:8px; margin-bottom:8px; border:2px solid var(--border-color); box-shadow:0 0 22px rgba(34,197,94,.35); }
+.neon-gen { font-size:1.7rem; font-weight:900; color:var(--neon-gold); text-shadow:0 0 14px rgba(34,197,94,.8); margin-bottom:6px; letter-spacing:3px; text-transform:uppercase; }
+.action-chip { display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:8px; font-size:.75rem; font-weight:700; text-decoration:none; cursor:pointer; transition:all .2s ease; }
+.telegram-chip { background:rgba(34,158,217,.15); border:1px solid rgba(34,158,217,.4); color:#38bdf8; }
+.telegram-chip:hover { background:rgba(34,158,217,.25); border-color:#229ed9; transform:translateY(-1px); }
+.welcome-title { font-size:1.5rem; color:#fff; margin-bottom:6px; text-shadow:0 0 8px var(--accent-glow); text-transform:uppercase; }
+.btn-start { background:linear-gradient(135deg,#4ade80 0%,#15803d 100%); border:none; color:#001a08; padding:11px 35px; border-radius:50px; font-family:var(--font-family); font-size:1rem; font-weight:800; text-transform:uppercase; letter-spacing:2px; cursor:pointer; box-shadow:0 0 15px rgba(34,197,94,.55); transition:all .3s ease; margin-top:8px; }
+.btn-start:hover { transform:translateY(-2px); box-shadow:0 0 24px rgba(34,197,94,.85); }
+.hub-list { display:flex; flex-direction:column; gap:10px; margin-top:15px; max-height:390px; overflow-y:auto; padding-right:5px; width:100%; }
+.hub-btn { background:rgba(255,255,255,.02); border-radius:14px; padding:12px 16px; color:#fff; text-align:left; font-family:var(--font-family); cursor:pointer; transition:all .2s; display:flex; justify-content:space-between; align-items:center; }
+.hub-btn-title { font-weight:700; font-size:.9rem; color:#fff; display:flex; flex-direction:column; width:100%; gap:2px; }
+
+.hub-btn-gold-glow {
+    border: 1px solid rgba(251, 191, 36, 0.6) !important;
+    background: linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(245,158,11,0.03) 100%) !important;
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.25);
+}
+.hub-btn-gold-glow:hover {
+    border-color: #fde68a !important;
+    background: linear-gradient(135deg, rgba(251,191,36,0.16) 0%, rgba(245,158,11,0.08) 100%) !important;
+    box-shadow: 0 0 22px rgba(251, 191, 36, 0.5);
+    transform: translateY(-1px);
+}
+.hub-btn-gold-glow .hub-btn-meta {
+    background: linear-gradient(135deg,#fde68a 0%,#f59e0b 100%) !important;
+    color: #3b2300 !important;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .5px;
+    white-space: nowrap;
+    box-shadow: 0 0 10px rgba(251,191,36,.4);
+}
+
+.score-status-display { font-size:.85rem; font-weight:800; margin-left:auto; margin-right:12px; text-align:right; line-height:1.2; }
+.passed-text { color:#4ade80; }
+.failed-text { color:#ff6b85; display:block; font-size:.75rem; }
+
+.top-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding-bottom:8px; border-bottom:1px dashed var(--border-color); width:100%; }
+.question-counter { font-size:.9rem; color:var(--accent); font-weight:800; text-transform:uppercase; display:flex; align-items:center; gap:6px; }
+.score-badges { display:flex; gap:6px; justify-content:flex-end; align-items:center; }
+.badge { padding:3px 9px; border-radius:8px; font-size:.78rem; font-weight:700; display:flex; align-items:center; gap:3px; }
+.badge-error { background-color:var(--error-bg); border:1px solid rgba(255,59,92,.35); color:var(--error-text); }
+.badge-success { background-color:var(--success-bg); border:1px solid rgba(34,197,94,.35); color:var(--success-text); }
+.badge-timer { background-color:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.4); color:#bbf7d0; font-family:monospace; }
+.badge-streak { background-color:var(--streak-bg); border:1px solid var(--streak-border); color:var(--streak-text); display:none; }
+
+.slider-container { width:100%; margin-bottom:15px; }
+.progress-slider { -webkit-appearance:none; width:100%; height:5px; border-radius:5px; background:var(--border-color); outline:none; cursor:pointer; }
+.progress-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:15px; height:15px; border-radius:50%; background:var(--accent); cursor:pointer; box-shadow:0 0 10px var(--accent-glow); }
+.question-container-box { min-height:270px; display:flex; flex-direction:column; justify-content:flex-start; width:100%; }
+.question-text { font-size:1.02rem; line-height:1.4; margin-bottom:12px; color:#fff; font-weight:700; text-align:left; width:100%; min-height:48px; animation: fadeIn .35s ease; }
+.options-list { display:flex; flex-direction:column; gap:9px; margin-bottom:12px; width:100%; }
+.option-btn { background-color:rgba(255,255,255,.02); border:1px solid var(--border-color); border-radius:10px; padding:10px 14px; text-align:left; color:var(--text-main); font-family:var(--font-family); font-size:.9rem; font-weight:500; cursor:pointer; transition:all .2s; width:100%; box-sizing:border-box; animation: optSlide .35s ease backwards; }
+.option-btn.selected-correct, .option-btn.correct { background-color:var(--success-bg) !important; border-color:var(--success-border) !important; color:var(--success-text) !important; }
+.option-btn.selected-incorrect { background-color:var(--error-bg) !important; border-color:var(--error-border) !important; color:var(--error-text) !important; }
+.option-btn.hidden-by-lifeline { display:none !important; }
+.extras-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; width:100%; }
+.lifeline-wrapper { display:flex; flex-direction:column; gap:2px; align-items:flex-start; }
+.lifeline-btn { background:rgba(34,197,94,.08); border:1px solid rgba(34,197,94,.35); color:#bbf7d0; padding:5px 12px; border-radius:7px; font-size:.8rem; font-weight:700; cursor:pointer; transition:background .2s; }
+.lifeline-btn:hover:not(:disabled) { background:rgba(34,197,94,.2); }
+.lifeline-btn:disabled { opacity:.3; cursor:not-allowed; }
+.flag-btn { background:transparent; border:1px solid var(--border-color); color:#94a3b8; padding:5px 12px; border-radius:7px; font-size:.8rem; cursor:pointer; }
+.flag-btn.flagged { background:rgba(34,197,94,.2); border-color:var(--accent); color:#bbf7d0; }
+.report-btn { background:transparent; border:1px solid rgba(255,59,92,.4); color:#ff6b85; padding:5px 12px; border-radius:7px; font-size:.8rem; cursor:pointer; margin-inline-start:6px; }
+
+/* لوحة الصدارة */
+.lb-container-box { width: 100%; background: rgba(0,0,0,0.6); border: 1px solid rgba(34,197,94,0.3); border-radius: 14px; padding: 10px; box-sizing: border-box; margin-top: 8px; }
+.lb-header-row { display: grid; grid-template-columns: 40px 1fr 75px 75px; font-size: 0.7rem; font-weight: 800; color: #86efac; text-transform: uppercase; padding: 4px 6px; border-bottom: 1px solid rgba(34,197,94,0.2); margin-bottom: 6px; letter-spacing: 0.3px; }
+.lb-list { width: 100%; max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; padding-right: 2px; }
+.lb-row { display: grid; grid-template-columns: 40px 1fr 75px 75px; align-items: center; background: rgba(34,197,94,0.05); border: 1px solid rgba(34,197,94,0.2); border-radius: 9px; padding: 7px 8px; font-size: 0.8rem; color: var(--text-main); transition: transform 0.15s; }
+.lb-row.lb-me { border-color: #fde68a; background: rgba(251,191,36,0.15); box-shadow: 0 0 10px rgba(251,191,36,0.2); }
+.lb-rank-badge { font-weight: 800; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-size: 0.7rem; }
+.rank-1 { background: linear-gradient(135deg, #fde68a 0%, #f59e0b 100%); color: #3b2300; box-shadow: 0 0 8px rgba(251,191,36,0.6); }
+.rank-2 { background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%); color: #0f172a; box-shadow: 0 0 8px rgba(148,163,184,0.6); }
+.rank-3 { background: linear-gradient(135deg, #fed7aa 0%, #c2410c 100%); color: #fff; box-shadow: 0 0 8px rgba(194,65,12,0.6); }
+.rank-other { color: #94a3b8; font-weight: 700; }
+.lb-player-name { font-weight: 700; color: #fff; word-break: break-word; overflow-wrap: break-word; white-space: normal; padding-right: 8px; text-align: left; line-height: 1.2; }
+.lb-score-val { color: #4ade80; font-weight: 800; text-align: right; font-size: 0.78rem; }
+.lb-acc-val { color: #bbf7d0; font-weight: 700; text-align: right; font-size: 0.72rem; }
+
+/* شاشة Notes */
+.notes-box { width: 100%; max-height: 380px; overflow-y: auto; text-align: left; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); border-radius: 14px; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.note-item { font-size: 0.88rem; color: #e9fff1; border-bottom: 1px dashed rgba(34,197,94,0.2); padding-bottom: 6px; line-height: 1.4; }
+.note-item strong { color: var(--accent); }
+
+.name-input { width:100%; box-sizing:border-box; padding:12px 14px; border-radius:12px; border:1px solid var(--border-color); background:rgba(0,0,0,.5); color:#fff; font-family:var(--font-family); font-size:1rem; text-align:center; outline:none; transition:box-shadow .2s, border-color .2s; }
+.name-input:focus { border-color:var(--accent); box-shadow:0 0 12px var(--accent-glow); }
+
+.nav-buttons { display:flex; flex-direction:column; gap:8px; width:100%; margin-top:15px; }
+.nav-row { display:flex; justify-content:space-between; gap:10px; width:100%; }
+.btn { background-color:transparent; border:1px solid var(--border-color); color:var(--text-main); padding:9px 15px; border-radius:9px; font-family:var(--font-family); font-size:.9rem; font-weight:700; cursor:pointer; transition:all .2s; }
+.btn-next { background:linear-gradient(135deg,#4ade80 0%,#15803d 100%); border:1px solid var(--accent); color:#001a08; flex-grow:1; box-shadow:0 0 12px rgba(34,197,94,.35); }
+.btn-review { background:linear-gradient(135deg,#86efac 0%,#16a34a 100%); border:1px solid #86efac; color:#00210d; width:100%; box-shadow:0 0 12px rgba(34,197,94,.3); margin-bottom:10px; }
+.btn-back-hub { background:rgba(34,197,94,.08); border:1px solid rgba(34,197,94,.35); color:#bbf7d0; width:100%; padding:10px; text-align:center; }
+.btn-back-hub:hover { color:#fff; background:rgba(34,197,94,.2); border-color:var(--accent); }
+.btn:disabled { opacity:.3; cursor:not-allowed; }
+
+.results-container { width:100%; box-sizing:border-box; }
+.results-container h2 { color:var(--accent); font-size:1.6rem; margin-bottom:6px; }
+.certificate-card { background:rgba(0,0,0,.5); border:1px solid var(--border-color); border-radius:16px; padding:12px; margin:6px 0; width:100%; box-sizing:border-box; backdrop-filter:blur(4px); }
+.cert-title { font-size:.78rem; color:#86efac; text-transform:uppercase; letter-spacing:1px; }
+.final-score { font-size:1.4rem; font-weight:800; color:var(--accent); margin:4px 0; text-shadow:0 0 10px var(--accent-glow); }
+.feedback-message { font-size:.85rem; color:#4ade80; font-weight:700; display:block; }
+
+.sound-toggle { position:fixed; bottom:14px; right:14px; width:44px; height:44px; border-radius:50%; border:1px solid var(--border-color); background:rgba(34,197,94,.14); color:#fff; font-size:1.3rem; cursor:pointer; z-index:10; backdrop-filter:blur(6px); transition:transform .2s; }
+.sound-toggle:hover { background:rgba(34,197,94,.3); border-color:var(--accent); transform:scale(1.08); }
+</style>
+</head>
+<body>
+
+<div class="bg-animation-layer">
+    <div class="glow-orb-1"></div>
+    <div class="glow-orb-2"></div>
+</div>
+
+<div class="quiz-container" id="main-card">
+
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="app-screen active">
+        <div class="author-top-left">GEN 2nd year</div>
+        <div class="telegram-top-right">
+            <a href="https://t.me/ge_n1" target="_blank" class="action-chip telegram-chip">
+                <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.26.26-.534.26l.213-3.05 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.654-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/></svg> Telegram Channel
+            </a>
+        </div>
+        <img src="https://cdn.phototourl.com/member/2026-09-27-aefac5df-84c1-4810-b0fe-1fad7b60f2cc.jpg" alt="NRS Practical" class="welcome-image">
+        <div class="neon-gen">GEN</div>
+        <h1 class="welcome-title">NRS Practical</h1>
+        <button class="btn-start" onclick="playSound('click'); checkNameBeforeHub()">START</button>
+    </div>
+
+    <!-- Name Screen -->
+    <div id="name-screen" class="app-screen">
+        <div class="author-top-left">GEN 2nd year</div>
+        <h2 style="color:var(--accent); margin-top:22px; font-size:1.5rem;">Write your name to start</h2>
+        <p style="color:#86efac; font-size:.85rem; margin-bottom:14px;">Your name will appear on the leaderboard</p>
+        <input type="text" id="name-input" class="name-input" maxlength="40" placeholder="Your name (e.g. John Doe)" onkeydown="if (event.key === 'Enter') submitName()">
+        <div id="name-error" style="font-size:.85rem; margin-top:10px; min-height:1.2em;"></div>
+        <button class="btn btn-next" style="margin-top:6px; width:100%;" onclick="playSound('click'); submitName()">Start Practical</button>
+        <button class="btn btn-back-hub" style="margin-top:8px;" onclick="playSound('click'); show(welcomeScreen)">Back</button>
+    </div>
+
+    <!-- Main Hub Screen -->
+    <div id="hub-screen" class="app-screen">
+        <div class="author-top-left">GEN 2nd year</div>
+        <div class="telegram-top-right">
+            <a href="https://t.me/ge_n1" target="_blank" class="action-chip telegram-chip">
+                <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.26.26-.534.26l.213-3.05 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.654-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/></svg> Telegram Channel
+            </a>
+        </div>
+        <h2 style="color:#fff; margin-bottom:5px; margin-top:22px; font-size:1.4rem;" id="hub-title-greeting">NRS Practical Hub</h2>
+        <p style="color:#86efac; font-size:.85rem; margin-bottom:14px;">Select module:</p>
+        <div class="hub-list">
+            <!-- زر Nervous tissue 26-27 (NOTES) -->
+            <button class="hub-btn hub-btn-gold-glow" onclick="playSound('click'); showNotesScreen()">
+                <div class="hub-btn-title">
+                    <span>Nervous tissue 26-27</span>
+                </div>
+                <span class="hub-btn-meta">NOTES</span>
+            </button>
+
+            <!-- زر Nervous tissue 26-27 (MCQ) -->
+            <button class="hub-btn hub-btn-gold-glow" id="hub-card-practicalmcq" onclick="playSound('click'); startOrResumeQuiz('practicalmcq')">
+                <div class="hub-btn-title">
+                    <span>Nervous tissue 26-27</span>
+                    <span id="score-status-practicalmcq" class="score-status-display"></span>
+                </div>
+                <span class="hub-btn-meta" id="hub-meta-practicalmcq">MCQ</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Notes Screen -->
+    <div id="notes-screen" class="app-screen">
+        <div class="author-top-left">GEN 2nd year</div>
+        <h2 style="color:var(--accent); margin-top:22px; font-size:1.4rem;">Nervous tissue 26-27 (NOTES)</h2>
+        <div class="notes-box">
+            <div class="note-item">1. General Note: <strong>Nervous tissue is primarily composed of neurons and neuroglial cells specialized for transmission and support.</strong></div>
+        </div>
+        <button class="btn btn-back-hub" style="margin-top:14px;" onclick="playSound('click'); openMainHub()">Back to Hub</button>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz-screen" class="app-screen">
+        <div class="author-top-left">GEN 2nd year</div>
+        <div class="telegram-top-right">
+            <a href="https://t.me/ge_n1" target="_blank" class="action-chip telegram-chip">
+                <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.26.26-.534.26l.213-3.05 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.654-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/></svg> Telegram Channel
+            </a>
+        </div>
+        <div class="top-header" style="margin-top:22px;">
+            <div class="question-counter"><span id="question-counter">Q 1/1</span></div>
+            <div class="score-badges">
+                <div class="badge badge-timer">⏱ <span id="timer-display">20:00</span></div>
+                <div class="badge badge-error">✕ <span id="wrong-count">0</span></div>
+                <div class="badge badge-success">✓ <span id="correct-count">0</span></div>
+            </div>
+        </div>
+        <div class="slider-container">
+            <input type="range" id="progress-slider" class="progress-slider" min="0" max="0" value="0">
+        </div>
+        <div class="question-container-box">
+            <div class="question-text" id="question-text">Loading question...</div>
+            <div class="extras-row">
+                <div class="lifeline-wrapper">
+                    <button class="lifeline-btn" id="lifeline-btn" onclick="playSound('click'); useLifeline()">✂ Remove 2 answers</button>
+                </div>
+                <div>
+                    <button class="flag-btn" id="flag-btn" onclick="playSound('click'); toggleFlag()">🚩 Flag</button>
+                    <button class="report-btn" onclick="playSound('click'); reportQuestion()">📩 Report</button>
+                </div>
+            </div>
+            <div class="options-list" id="options-list"></div>
+        </div>
+        <div class="nav-buttons">
+            <div class="nav-row">
+                <button class="btn" id="base-back-btn" onclick="playSound('click'); prevQuestion()" disabled>Back</button>
+                <button class="btn btn-next" id="next-btn" onclick="playSound('click'); nextQuestion()">Next</button>
+            </div>
+            <button class="btn btn-back-hub" onclick="playSound('click'); pauseAndGoToHub()">🏠 Hub (Save & Exit)</button>
+        </div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="results-screen" class="app-screen">
+        <div class="author-top-left">GEN 2nd year</div>
+        <div class="telegram-top-right">
+            <a href="https://t.me/ge_n1" target="_blank" class="action-chip telegram-chip">
+                <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.26.26-.534.26l.213-3.05 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.654-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/></svg> Telegram Channel
+            </a>
+        </div>
+        <h2 id="results-title" style="margin-top:16px; color:var(--accent); font-size:1.2rem;">Round Completed! 🏆</h2>
+        <div class="certificate-card">
+            <div class="cert-title">NRS Practical Scholar - GEN 2nd year</div>
+            <div class="final-score" id="final-score-text">Score: 0 / 0</div>
+            <span class="feedback-message" id="cert-feedback">Outstanding!</span>
+        </div>
+        <div id="save-status" style="font-size:.75rem; margin-top:2px; color:#fde68a;"></div>
+        
+        <!-- لوحة الصدارة -->
+        <div class="lb-container-box">
+            <div class="lb-header-row">
+                <span>Rank</span>
+                <span>Player</span>
+                <span style="text-align:right;">Score</span>
+                <span style="text-align:right;">Accuracy</span>
+            </div>
+            <div class="lb-list" id="results-lb"></div>
+        </div>
+
+        <div style="display:flex; gap:8px; width:100%; margin-top:10px;">
+            <button class="btn btn-review" style="margin:0;" onclick="playSound('click'); startFreeReview()">Review</button>
+            <button class="btn btn-back-hub" style="margin:0;" onclick="playSound('click'); openMainHub()">Hub</button>
+        </div>
+    </div>
+</div>
+
+<button class="sound-toggle" id="sound-toggle" onclick="toggleSound()" aria-label="Toggle sound">🔊</button>
+
+<script>
+const mk = arr => arr.map((x, i) => ({ id: i + 1, question: "[PRACTICAL] " + x[0], options: x[1], answer: x[2], extra: x[3] || [] }));
+const isCorrect = (q, idx) => idx === q.correctIndex || q.extra.includes(idx);
+
+// داتاسيت امتحان الـ MCQ مع السؤال الإضافي الافتراضي
+const practicalMcqDataset = mk([
+    [ "What is the primary function of neurons in nervous tissue?", ["Support and nutrition", "Transmission of nerve impulses", "Protection only", "Secretion of hormones"], 1]
+]);
+
+const datasets = { practicalmcq: practicalMcqDataset };
+
+let activeDataset = [];
+let currentQuestionIndex = 0;
+let score = 0, wrongCount = 0;
+let answered = false;
+let userAnswers = [];
+let flaggedQuestions = new Set();
+let lifelineUsed = false;
+let isReviewingFree = false;
+let currentActiveMode = "";
+let timerInterval = null;
+
+const newProg = () => ({ index: 0, score: 0, wrongCount: 0, userAnswers: [], flagged: new Set(), lifelineUsed: false, completed: false, status: "", endTime: null });
+let sectionProgress = { practicalmcq: newProg() };
+
+(function neuralBackground() {
+    const layer = document.querySelector('.bg-animation-layer');
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;';
+    layer.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    const maxDist = 150;
+    let w, h, nodes = [], pulses = [];
+
+    function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        const count = Math.min(70, Math.floor((w * h) / 16000));
+        nodes = Array.from({ length: count }, () => ({
+            x: Math.random() * w, y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 0.25, vy: (Math.random() - 0.5) * 0.25
+        }));
+        pulses = [];
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function draw() {
+        ctx.clearRect(0, 0, w, h);
+        for (const n of nodes) {
+            n.x += n.vx; n.y += n.vy;
+            if (n.x < 0 || n.x > w) n.vx *= -1;
+            if (n.y < 0 || n.y > h) n.vy *= -1;
+        }
+        for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+                const a = nodes[i], b = nodes[j];
+                const d = Math.hypot(a.x - b.x, a.y - b.y);
+                if (d < maxDist) {
+                    ctx.strokeStyle = `rgba(34,197,94,${(1 - d / maxDist) * 0.25})`;
+                    ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+                }
+            }
+        }
+        if (Math.random() < 0.05 && nodes.length > 1) {
+            const i = Math.floor(Math.random() * nodes.length);
+            let best = -1, bestD = maxDist;
+            for (let j = 0; j < nodes.length; j++) {
+                if (j === i) continue;
+                const d = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
+                if (d < bestD) { bestD = d; best = j; }
+            }
+            if (best >= 0) pulses.push({ a: i, b: best, t: 0 });
+        }
+        pulses = pulses.filter(p => p.t <= 1);
+        for (const p of pulses) {
+            const a = nodes[p.a], b = nodes[p.b];
+            const x = a.x + (b.x - a.x) * p.t;
+            const y = a.y + (b.y - a.y) * p.t;
+            ctx.fillStyle = '#86efac'; ctx.shadowColor = '#22c55e'; ctx.shadowBlur = 10;
+            ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2); ctx.fill();
+            p.t += 0.015;
+        }
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(74,222,128,0.7)';
+        for (const n of nodes) {
+            ctx.beginPath(); ctx.arc(n.x, n.y, 1.8, 0, Math.PI * 2); ctx.fill();
+        }
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+const $ = id => document.getElementById(id);
+const welcomeScreen = $("welcome-screen"), nameScreen = $("name-screen"), hubScreen = $("hub-screen"), quizScreen = $("quiz-screen"), resultsScreen = $("results-screen");
+const questionCounter = $("question-counter"), correctCountEl = $("correct-count"), wrongCountEl = $("wrong-count");
+const progressSlider = $("progress-slider"), questionText = $("question-text"), optionsList = $("options-list"), backBtn = $("base-back-btn");
+const lifelineBtn = $("lifeline-btn"), mainCard = $("main-card"), flagBtn = $("flag-btn"), timerDisplay = $("timer-display");
+
+let playerName = localStorage.getItem("nrs_practical_name") || "";
+
+function checkNameBeforeHub() {
+    if (!playerName) {
+        show(nameScreen);
+        $("name-input").value = "";
+        setTimeout(() => $("name-input").focus(), 50);
+    } else {
+        openMainHub();
+    }
+}
+
+function submitName() {
+    const n = $("name-input").value.trim();
+    const err = $("name-error");
+    const isValidName = n.length >= 2 && /[a-zA-Zأ-ي]/g.test(n);
+
+    if (!isValidName) {
+        err.style.color = "#ff6b85";
+        err.textContent = "⚠️ Please enter a real name (at least 2 letters)!";
+        $("name-input").focus();
+        return;
+    }
+
+    err.style.color = "#fde68a";
+    err.textContent = "Checking name availability...";
+
+    rtdb.ref("practical_scores").orderByChild("name").equalTo(n).once("value", snapshot => {
+        if (snapshot.exists()) {
+            err.style.color = "#ff6b85";
+            err.textContent = "⚠️ This name is already taken!";
+            $("name-input").focus();
+        } else {
+            err.textContent = "";
+            playerName = n;
+            localStorage.setItem("nrs_practical_name", playerName);
+            openMainHub();
+        }
+    }, error => {
+        err.textContent = "";
+        playerName = n;
+        localStorage.setItem("nrs_practical_name", playerName);
+        openMainHub();
+    });
+}
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCJ7nr1L0K4B-qc0vnuQSkNyGp404FZFbU",
+  authDomain: "nrsmidleaderboard-27d3c.firebaseapp.com",
+  databaseURL: "https://nrsmidleaderboard-27d3c-default-rtdb.firebaseio.com",
+  projectId: "nrsmidleaderboard-27d3c",
+  storageBucket: "nrsmidleaderboard-27d3c.firebasestorage.app",
+  messagingSenderId: "507393436968",
+  appId: "1:507393436968:web:af46fc36f7c824755ef41d"
+};
+
+firebase.initializeApp(firebaseConfig);
+const rtdb = firebase.database();
+
+function submitScore(mode, score, total) {
+    const test = "Nervous tissue MCQ";
+    const pct = total ? Math.round((score / total) * 100) : 0;
+    const st = $("save-status");
+    if (st) { st.style.color = "#fde68a"; st.textContent = "Saving score to leaderboard..."; }
+
+    const scoresRef = rtdb.ref("practical_scores");
+    scoresRef.orderByChild("name").equalTo(playerName).once("value", snapshot => {
+        let existingKey = null;
+        let existingData = null;
+
+        snapshot.forEach(child => {
+            const val = child.val();
+            if (val.test === test) {
+                existingKey = child.key;
+                existingData = val;
+            }
+        });
+
+        const scoreData = {
+            name: playerName,
+            test: test,
+            score: score,
+            total: total,
+            pct: pct,
+            timestamp: Date.now()
+        };
+
+        if (existingKey) {
+            if (pct > existingData.pct || (pct === existingData.pct && score > existingData.score)) {
+                scoresRef.child(existingKey).set(scoreData, error => {
+                    if (st) {
+                        st.style.color = error ? "#ff6b85" : "#4ade80";
+                        st.textContent = error ? "Save failed: " + error.message : "✓ High score updated successfully!";
+                    }
+                });
+            } else {
+                if (st) { st.style.color = "#4ade80"; st.textContent = "✓ Score checked (Previous high score kept)!"; }
+            }
+        } else {
+            scoresRef.push(scoreData, error => {
+                if (st) {
+                    st.style.color = error ? "#ff6b85" : "#4ade80";
+                    st.textContent = error ? "Save failed: " + error.message : "✓ Score saved successfully!";
+                }
+            });
+        }
+    });
+}
+
+function showResultsRanking(mode, score, total) {
+    const box = $("results-lb");
+    box.innerHTML = "";
+    box.textContent = "Loading live leaderboard...";
+
+    rtdb.ref("practical_scores").orderByChild("pct").once("value", snapshot => {
+        box.innerHTML = "";
+        if (!snapshot.exists()) {
+            box.textContent = "No scores yet on the board.";
+            return;
+        }
+        let list = [];
+        snapshot.forEach(child => { list.push(child.val()); });
+        
+        let filtered = list.filter(r => r.test === "Nervous tissue MCQ");
+        let uniqueMap = {};
+        filtered.forEach(r => {
+            if (!uniqueMap[r.name] || r.pct > uniqueMap[r.name].pct) {
+                uniqueMap[r.name] = r;
+            }
+        });
+        let uniqueList = Object.values(uniqueMap);
+        uniqueList.sort((a, b) => b.pct - a.pct || b.score - a.score);
+
+        uniqueList.slice(0, 100).forEach((r, i) => {
+            const row = document.createElement("div");
+            row.className = "lb-row" + (r.name === playerName ? " lb-me" : "");
+            
+            const rkSpan = document.createElement("span");
+            let badgeClass = "rank-other";
+            if (i === 0) badgeClass = "rank-1";
+            else if (i === 1) badgeClass = "rank-2";
+            else if (i === 2) badgeClass = "rank-3";
+            rkSpan.className = `lb-rank-badge ${badgeClass}`;
+            rkSpan.textContent = `#${i + 1}`;
+            row.appendChild(rkSpan);
+
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "lb-player-name";
+            nameSpan.textContent = r.name;
+            row.appendChild(nameSpan);
+
+            const scoreSpan = document.createElement("span");
+            scoreSpan.className = "lb-score-val";
+            scoreSpan.textContent = `${r.score}/${r.total}`;
+            row.appendChild(scoreSpan);
+
+            const accSpan = document.createElement("span");
+            accSpan.className = "lb-acc-val";
+            accSpan.textContent = `${r.pct}% ACC`;
+            row.appendChild(accSpan);
+
+            box.appendChild(row);
+        });
+    }, error => {
+        box.textContent = "Could not load leaderboard.";
+    });
+}
+
+function show(screen) {
+    [welcomeScreen, nameScreen, hubScreen, notesScreen, quizScreen, resultsScreen].forEach(s => { s.classList.remove("active"); s.style.display = "none"; });
+    screen.classList.add("active");
+    screen.style.display = "flex";
+}
+
+const notesScreen = $("notes-screen");
+function showNotesScreen() {
+    show(notesScreen);
+}
+
+function openMainHub() {
+    clearInterval(timerInterval);
+    show(hubScreen);
+    updateHubWelcomeLabel();
+    Object.keys(sectionProgress).forEach(updateHubCardUI);
+}
+
+function updateHubWelcomeLabel() {
+    const titleEl = $("hub-title-greeting");
+    if (playerName) {
+        titleEl.innerHTML = `Welcome, <span style="color:var(--accent);">${escapeHtml(playerName)}</span>`;
+    } else {
+        titleEl.innerText = "NRS Practical Hub";
+    }
+}
+
+function escapeHtml(text) {
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function updateHubCardUI(mode) {
+    const card = $(`hub-card-${mode}`);
+    if (!card) return;
+    const statusEl = $(`score-status-${mode}`), metaEl = $(`hub-meta-${mode}`);
+    const prog = sectionProgress[mode];
+    const total = datasets[mode].length;
+    if (prog.completed) {
+        card.className = prog.status.includes("Try Again") ? "hub-btn hub-btn-gold-glow failed" : "hub-btn hub-btn-gold-glow passed";
+        statusEl.innerHTML = prog.status;
+    } else if (prog.index > 0) {
+        card.className = "hub-btn hub-btn-gold-glow";
+        statusEl.innerHTML = `<span style="color:#bbf7d0; font-size:0.8rem;">In Progress<br>(${prog.index}/${total})</span>`;
+    } else {
+        card.className = "hub-btn hub-btn-gold-glow";
+        statusEl.innerHTML = "";
+    }
+    metaEl.innerText = "MCQ";
+}
+
+function prepareDataset(mode) {
+    activeDataset = [...datasets[mode]];
+    activeDataset.forEach(q => { q.shuffledOptions = [...q.options]; q.correctIndex = q.answer; });
+}
+
+function startOrResumeQuiz(mode) {
+    if (!datasets[mode] || !datasets[mode].length) return;
+    currentActiveMode = mode;
+    const prog = sectionProgress[mode];
+    const durationMinutes = 20;
+
+    if (prog.completed || prog.index === 0) {
+        prepareDataset(mode);
+        Object.assign(prog, newProg());
+        prog.order = activeDataset;
+        prog.userAnswers = new Array(activeDataset.length).fill(null);
+        prog.endTime = Date.now() + durationMinutes * 60 * 1000;
+    } else {
+        activeDataset = prog.order;
+        if (!prog.endTime) prog.endTime = Date.now() + durationMinutes * 60 * 1000;
+    }
+
+    currentQuestionIndex = prog.index;
+    score = prog.score;
+    wrongCount = prog.wrongCount;
+    userAnswers = prog.userAnswers;
+    flaggedQuestions = prog.flagged;
+    lifelineUsed = prog.lifelineUsed;
+    isReviewingFree = false;
+
+    correctCountEl.innerText = score;
+    wrongCountEl.innerText = wrongCount;
+    lifelineBtn.disabled = lifelineUsed;
+
+    show(quizScreen);
+    loadQuestion();
+    startTimer();
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        const prog = sectionProgress[currentActiveMode];
+        if (!prog || prog.completed || isReviewingFree) return;
+        const remaining = prog.endTime - Date.now();
+        if (remaining <= 0) {
+            clearInterval(timerInterval);
+            timerDisplay.innerText = "00:00";
+            showResults();
+        } else {
+            const mins = Math.floor(remaining / 60000);
+            const secs = Math.floor((remaining % 60000) / 1000);
+            timerDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+    }, 1000);
+}
+
+function pauseAndGoToHub() {
+    clearInterval(timerInterval);
+    const p = sectionProgress[currentActiveMode];
+    if (p && !p.completed && !isReviewingFree) {
+        p.index = currentQuestionIndex; p.score = score; p.wrongCount = wrongCount;
+        p.userAnswers = userAnswers; p.flagged = flaggedQuestions; p.lifelineUsed = lifelineUsed;
+    }
+    openMainHub();
+}
+
+progressSlider.addEventListener("input", e => {
+    currentQuestionIndex = parseInt(e.target.value);
+    loadQuestion();
+});
+
+function updateFlagUI(qId) {
+    const f = flaggedQuestions.has(qId);
+    flagBtn.classList.toggle("flagged", f);
+    flagBtn.innerText = f ? "🚩 Flagged" : "🚩 Flag";
+}
+function toggleFlag() {
+    const qId = activeDataset[currentQuestionIndex].id;
+    if (flaggedQuestions.has(qId)) flaggedQuestions.delete(qId); else flaggedQuestions.add(qId);
+    updateFlagUI(qId);
+}
+
+function loadQuestion() {
+    const q = activeDataset[currentQuestionIndex];
+    questionCounter.innerText = `Q ${currentQuestionIndex + 1}/${activeDataset.length}`;
+    updateFlagUI(q.id);
+
+    progressSlider.max = Math.max(activeDataset.length - 1, 1);
+    progressSlider.value = currentQuestionIndex;
+    const pct = activeDataset.length > 1 ? (currentQuestionIndex / (activeDataset.length - 1)) * 100 : 0;
+    progressSlider.style.background = `linear-gradient(to right, var(--accent) ${pct}%, rgba(34,197,94,0.2) ${pct}%)`;
+
+    questionText.textContent = "";
+    if (q.question.startsWith("[PRACTICAL] ")) {
+        const tag = document.createElement("span");
+        tag.className = "vip-tag"; tag.textContent = "PRACTICAL";
+        questionText.appendChild(tag);
+        questionText.appendChild(document.createTextNode(q.question.slice(12)));
+    } else {
+        questionText.textContent = q.question;
+    }
+    optionsList.innerHTML = "";
+    lifelineBtn.disabled = lifelineUsed || isReviewingFree;
+
+    const savedAnswer = userAnswers[currentQuestionIndex];
+    answered = savedAnswer !== null || isReviewingFree;
+
+    q.shuffledOptions.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.classList.add("option-btn");
+        btn.innerHTML = `<strong>${String.fromCharCode(65 + idx)}.</strong> ${opt}`;
+
+        if (answered) {
+            btn.disabled = true;
+            if (isCorrect(q, idx)) btn.classList.add("correct");
+            if (savedAnswer === idx && !isCorrect(q, idx)) btn.classList.add("selected-incorrect");
+            if (savedAnswer === idx && isCorrect(q, idx)) btn.classList.add("selected-correct");
+        } else {
+            btn.onclick = () => selectOption(idx);
+        }
+        optionsList.appendChild(btn);
+    });
+    backBtn.disabled = currentQuestionIndex === 0;
+}
+
+function useLifeline() {
+    if (lifelineUsed || answered || isReviewingFree) return;
+    lifelineUsed = true; lifelineBtn.disabled = true;
+    const q = activeDataset[currentQuestionIndex];
+    const btns = optionsList.children;
+    let hidden = 0;
+    const maxHide = Math.min(2, btns.length - 2);
+    for (let i = 0; i < btns.length; i++) {
+        if (!isCorrect(q, i) && hidden < maxHide) {
+            btns[i].classList.add("hidden-by-lifeline");
+            hidden++;
+        }
+    }
+}
+
+function selectOption(idx) {
+    if (answered || isReviewingFree) return;
+    answered = true;
+    userAnswers[currentQuestionIndex] = idx;
+    const q = activeDataset[currentQuestionIndex];
+    const btns = optionsList.children;
+
+    if (isCorrect(q, idx)) {
+        score++;
+        correctCountEl.innerText = score;
+        btns[idx].classList.add("selected-correct");
+        playSound('correct');
+        mainCard.classList.add("happy-flash");
+        setTimeout(() => mainCard.classList.remove("happy-flash"), 600);
+    } else {
+        wrongCount++;
+        wrongCountEl.innerText = wrongCount;
+        btns[idx].classList.add("selected-incorrect");
+        playSound('incorrect');
+        mainCard.classList.add("screen-shake");
+        setTimeout(() => mainCard.classList.remove("screen-shake"), 400);
+    }
+    for (let i = 0; i < btns.length; i++) { if (isCorrect(q, i)) btns[i].classList.add("correct"); }
+    for (let b of btns) b.disabled = true;
+}
+
+function nextQuestion() {
+    if (currentQuestionIndex < activeDataset.length - 1) {
+        currentQuestionIndex++; loadQuestion();
+    } else if (isReviewingFree) {
+        openMainHub();
+    } else {
+        showResults();
+    }
+}
+
+const WHATSAPP_NUMBER = "201030599064";
+
+function reportQuestion() {
+    const q = activeDataset[currentQuestionIndex];
+    const correctIdx = q.shuffledOptions.findIndex((_, i) => isCorrect(q, i));
+    const options = q.shuffledOptions.map((o, i) => `${String.fromCharCode(65 + i)}. ${o}`).join("\n");
+    const msg = `⚠️ خطأ في سؤال Practical 🩺\n\n🔢 رقم السؤال: ${currentQuestionIndex + 1}\n\n${q.question}\n\n${options}\n\nالإجابة الصحيحة: ${String.fromCharCode(65 + correctIdx)}`;
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+}
+
+function prevQuestion() {
+    if (currentQuestionIndex > 0) { currentQuestionIndex--; loadQuestion(); }
+}
+
+function showResults() {
+    clearInterval(timerInterval);
+    const total = activeDataset.length;
+    const passingMark = Math.ceil(total / 2);
+    const percentage = Math.round((score / total) * 100);
+
+    let tag = percentage >= 50 ? "<br><span style='color:#4ade80;'>(Great Job 👏)</span>" : "<br><span style='color:#ff3b5c;'>(Keep Practicing 💪)</span>";
+    const status = score >= passingMark ? `<span class="passed-text">${score}/${total} ✓</span>${tag}` : `<span class="failed-text">${score}/${total} ✕</span>${tag}`;
+
+    const p = sectionProgress[currentActiveMode];
+    p.completed = true; p.status = status; p.index = 0;
+
+    show(resultsScreen);
+    $("final-score-text").innerText = `Score: ${score} / ${total} (${percentage}%)`;
+    $("cert-feedback").innerText = percentage >= 50 ? "Master Practical! Certified 🌟🧠" : "Review Your Notes! Try Again 💪";
+
+    submitScore(currentActiveMode, score, total);
+    showResultsRanking(currentActiveMode, score, total);
+}
+
+function startFreeReview() {
+    isReviewingFree = true;
+    currentQuestionIndex = 0;
+    lifelineBtn.disabled = true;
+    show(quizScreen);
+    loadQuestion();
+}
+
+let audioCtx = null, masterGain = null, soundOn = true;
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const comp = audioCtx.createDynamicsCompressor();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 1;
+        masterGain.connect(comp);
+        comp.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+function tone(freq, start, dur, type, vol, endFreq) {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, start);
+    if (endFreq) o.frequency.exponentialRampToValueAtTime(endFreq, start + dur);
+    g.gain.setValueAtTime(vol, start);
+    g.gain.exponentialRampToValueAtTime(0.001, start + dur);
+    o.connect(g); g.connect(masterGain); o.start(start); o.stop(start + dur);
+}
+function playSound(type) {
+    if (!soundOn) return;
+    try {
+        initAudio();
+        const now = audioCtx.currentTime;
+        if (type === 'click') tone(900, now, 0.09, 'square', 0.6);
+        else if (type === 'correct') { tone(659, now, 0.15, 'triangle', 1); tone(784, now + 0.12, 0.15, 'triangle', 1); tone(1047, now + 0.24, 0.3, 'triangle', 1); }
+        else if (type === 'incorrect') tone(250, now, 0.35, 'sawtooth', 0.8, 120);
+    } catch (e) {}
+}
+function toggleSound() {
+    soundOn = !soundOn;
+    $("sound-toggle").innerText = soundOn ? "🔊" : "🔇";
+}
+</script>
+</body>
+</html>
